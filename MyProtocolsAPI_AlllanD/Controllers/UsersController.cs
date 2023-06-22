@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyProtocolsAPI_AlllanD.Attributes;
 using MyProtocolsAPI_AlllanD.Models;
 
 namespace MyProtocolsAPI_AlllanD.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiKey]
     public class UsersController : ControllerBase
     {
         private readonly MyProtocolsDBContext _context;
@@ -85,6 +87,7 @@ namespace MyProtocolsAPI_AlllanD.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
+
           if (_context.Users == null)
           {
               return Problem("Entity set 'MyProtocolsDBContext.Users'  is null.");
@@ -94,26 +97,7 @@ namespace MyProtocolsAPI_AlllanD.Controllers
 
             return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+               
 
         private bool UserExists(int id)
         {
