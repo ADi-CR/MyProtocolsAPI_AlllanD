@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using MyProtocolsAPI_AlllanD.Attributes;
 using MyProtocolsAPI_AlllanD.Models;
@@ -129,14 +130,30 @@ namespace MyProtocolsAPI_AlllanD.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserDTO user)
         {
-            if (id != user.UserId)
+            if (id != user.IDUsuario)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            //tenemos que hacer la conversión entre el DTO que llega en formato 
+            //json (en el header) y el objeto que entity framework entiende que es de
+            //tipo User
+                        
+            User? NewEFUser = GetUserByID(id);
+
+            if (NewEFUser != null) 
+            {
+                NewEFUser.Email = user.Correo;
+                NewEFUser.Name = user.Nombre; 
+                NewEFUser.BackUpEmail = user.CorreoRespaldo;
+                NewEFUser.PhoneNumber = user.Telefono;
+                NewEFUser.Address = user.Direccion;
+
+                _context.Entry(NewEFUser).State = EntityState.Modified;
+
+            }
 
             try
             {
@@ -154,7 +171,7 @@ namespace MyProtocolsAPI_AlllanD.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/Users
@@ -178,5 +195,15 @@ namespace MyProtocolsAPI_AlllanD.Controllers
         {
             return (_context.Users?.Any(e => e.UserId == id)).GetValueOrDefault();
         }
+
+        private User? GetUserByID(int id)
+        {
+            var user = _context.Users.Find(id);
+
+            //var user = _context.Users?.Any(e => e.UserId == id);
+                        
+            return user; 
+        }
+
     }
 }
